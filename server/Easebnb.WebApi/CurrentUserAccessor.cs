@@ -34,11 +34,11 @@ public class CurrentUserAccessor(IHttpContextAccessor httpContextAccessor) : ICu
 
         EmailAddress? email = null;
         if (!string.IsNullOrEmpty(emailClaim))
-            email = new EmailAddress(emailClaim);
+            email = EmailAddress.Create(emailClaim);
 
         return new CurrentUser
         {
-            Id = new UserId(userId),
+            Id = UserId.From(userId),
             UserName = userName,
             Email = email!
         };
