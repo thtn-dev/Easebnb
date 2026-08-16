@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using BuildingBlocks.Application.ObjectStorage.Abstractions;
+using BuildingBlocks.Infrastructure.ObjectStorage.S3;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Easebnb.Identity.Core.Dtos;
@@ -7,7 +9,7 @@ using Easebnb.Identity.Core.Interfaces;
 
 namespace Easebnb.Identity.Infrastructure.Services;
 
-public class AccountService(UserManager<User> userManager) : IAccountService
+public sealed class AccountService(UserManager<User> userManager, IObjectStorage objectStorage) : IAccountService
 {
     public async Task<ErrorOr<Success>> ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
     {
@@ -60,7 +62,7 @@ public class AccountService(UserManager<User> userManager) : IAccountService
 
     public async Task<ErrorOr<Success>> ConfirmEmailAsync(ConfirmEmailRequest request)
     {
-        var user = await userManager.FindByIdAsync(request.UserId);
+        var user = await userManager.FindByIdAsync(request.UserId.ToString());
         if (user == null) return Error.Validation("Invalid request");
 
         // Decode token from URL
@@ -147,5 +149,105 @@ public class AccountService(UserManager<User> userManager) : IAccountService
             user.TwoFactorEnabled);
 
         return userInfo;
+    }
+
+    public async Task<ErrorOr<Success>> UpdateProfilePictureAsync(Guid userId, UpdateProfilePictureRequest request)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+
+        if (user == null)
+            return Error.NotFound("User not found");
+
+        if (request.Content.Length == 0)
+            return Error.Validation("Profile picture is required");
+
+        if (string.IsNullOrWhiteSpace(request.ContentType))
+            return Error.Validation("Content type is required");
+
+        var allowedContentTypes = new HashSet<string>(
+            StringComparer.OrdinalIgnoreCase)
+        {
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        };
+
+        if (!allowedContentTypes.Contains(request.ContentType))
+            return Error.Validation("Unsupported image type");
+
+        const string bucket = "easebnb-users";
+
+        var extension = request.ContentType switch
+        {
+            "image/jpeg" => "jpg",
+            "image/png" => "png",
+            "image/webp" => "webp",
+            _ => throw new InvalidOperationException()
+        };
+        var fileName = ObjectKeyGenerator.NewKey($".{extension}");
+        var newKey =
+            $"users/{userId}/profile-picture/{fileName}";
+
+        try
+        {
+            var uploadResult = await objectStorage.PutAsync(
+                new PutObjectRequest
+                {
+                    Bucket = bucket,
+                    Key = newKey,
+                    Content = request.Content,
+                    ContentType = request.ContentType
+                },
+                CancellationToken.None);
+
+            var oldKey = user.ProfilePictureKey;
+
+            user.ProfilePictureKey = uploadResult.Key;
+
+            var updateResult = await userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+            {
+                // DB update failed -> remove newly uploaded object
+                await objectStorage.DeleteAsync(
+                    bucket,
+                    newKey,
+                    CancellationToken.None);
+
+                var errors = string.Join(
+                    ", ",
+                    updateResult.Errors.Select(e => e.Description));
+
+                return Error.Validation(
+                    $"Profile picture update failed: {errors}");
+            }
+
+            // DB update succeeded -> remove old object
+            if (!string.IsNullOrWhiteSpace(oldKey) &&
+                !string.Equals(oldKey, newKey, StringComparison.Ordinal))
+            {
+                try
+                {
+                    await objectStorage.DeleteAsync(
+                        bucket,
+                        oldKey,
+                        CancellationToken.None);
+                }
+                catch
+                {
+                    // Do not fail the request because the new picture
+                    // is already persisted successfully.
+                    //
+                    // Consider logging this and retrying asynchronously.
+                }
+            }
+
+            return Result.Success;
+        }
+        catch (ObjectStorageException)
+        {
+            return Error.Unexpected(
+                "Failed to upload profile picture");
+        }
     }
 }

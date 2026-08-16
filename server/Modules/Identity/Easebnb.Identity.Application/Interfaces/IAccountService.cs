@@ -10,4 +10,5 @@ public interface IAccountService
     Task<ErrorOr<Success>> ConfirmEmailAsync(ConfirmEmailRequest request);
     Task<ErrorOr<Success>> ResendEmailConfirmationAsync(ResendEmailConfirmationRequest request);
     Task<ErrorOr<UserInfo>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request);
+    Task<ErrorOr<Success>> UpdateProfilePictureAsync(Guid userId, UpdateProfilePictureRequest request);
 }

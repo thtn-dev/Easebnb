@@ -94,7 +94,7 @@ public sealed class ObjectStream : IAsyncDisposable
         if (Content is IAsyncDisposable ad)
             await ad.DisposeAsync();
         else
-            Content.Dispose();
+            await Content.DisposeAsync();
     }
 }
 

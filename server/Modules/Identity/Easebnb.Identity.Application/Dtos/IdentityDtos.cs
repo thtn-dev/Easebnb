@@ -48,7 +48,7 @@ public record ResetPasswordRequest(
 
 // Email Confirmation
 public record ConfirmEmailRequest(
-    string UserId,
+    Guid UserId,
     string Token);
 
 public record ResendEmailConfirmationRequest(
@@ -60,12 +60,16 @@ public record UpdateProfileRequest(
     string? PhoneNumber);
 
 // Two-Factor Authentication
-public record Enable2FAResponse(
+public record Enable2FaResponse(
     string SharedKey,
     string AuthenticatorUri);
 
-public record Verify2FARequest(
+public record Verify2FaRequest(
     string Code);
 
 public record GenerateRecoveryCodesResponse(
     string[] RecoveryCodes);
+
+public sealed record UpdateProfilePictureRequest(
+    Stream Content,
+    string ContentType);
