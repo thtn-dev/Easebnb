@@ -2,18 +2,46 @@ using System.IdentityModel.Tokens.Jwt;
 using BuildingBlocks.Endpoints;
 using BuildingBlocks.Infrastructure;
 using BuildingBlocks.Infrastructure.DomainEvent;
+using BuildingBlocks.Infrastructure.ObjectStorage.S3;
 using BuildingBlocks.SharedKernel;
 using DotNetEnv;
 using Scalar.AspNetCore;
 using Easebnb.Database;
 using Easebnb.Identity.Infrastructure;
 using Easebnb.Identity.Infrastructure.Database;
+using Easebnb.WebApi;
 using Easebnb.WebApi.Extensions;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.RateLimiting;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
+var uploadSettings = builder.Configuration.GetSection("UploadSettings").Get<UploadSettings>()
+                     ?? new UploadSettings();
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = uploadSettings.GlobalMaxBodySizeBytes;
+});
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = uploadSettings.GlobalMaxBodySizeBytes;
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+ 
+    options.AddFixedWindowLimiter("file-upload", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+});
+builder.Services.Configure<AvatarUploadSettings>(
+    builder.Configuration.GetSection("UploadSettings:Avatar"));
 builder.Services.ConfigureOpenApi();
 builder.AddServiceDefaults();
 
@@ -57,6 +85,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddS3ObjectStorage(builder.Configuration);
+
 var app = builder.Build();
 app.UseCors("AllowAll");
 app.UseForwardedHeaders();
@@ -88,6 +118,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapDefaultEndpoints();
 app.MapEndpoints();
 app.Run();

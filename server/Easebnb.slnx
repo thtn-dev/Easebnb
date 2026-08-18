@@ -1,22 +1,23 @@
 <Solution>
     <Folder Name="/Aspire/">
-        <Project Path="Aspire/Easebnb.AppHost/Easebnb.AppHost.csproj"/>
+        <Project Path="Aspire/Easebnb.AppHost/Easebnb.AppHost.csproj" />
     </Folder>
     <Folder Name="/BuildingBlocks/">
-        <Project Path="BuildingBlocks/BuildingBlocks.Application/BuildingBlocks.Application.csproj"/>
-        <Project Path="BuildingBlocks/BuildingBlocks.Endpoints/BuildingBlocks.Endpoints.csproj"/>
-        <Project Path="BuildingBlocks/BuildingBlocks.Infrastructure/BuildingBlocks.Infrastructure.csproj"/>
-        <Project Path="BuildingBlocks/BuildingBlocks.SharedKernel/BuildingBlocks.SharedKernel.csproj"/>
-        <Project Path="BuildingBlocks/BuildingBlocks.Utils/BuildingBlocks.Utils.csproj"/>
+        <Project Path="BuildingBlocks/BuildingBlocks.Application/BuildingBlocks.Application.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.Endpoints/BuildingBlocks.Endpoints.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.Infrastructure/BuildingBlocks.Infrastructure.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.SharedKernel/BuildingBlocks.SharedKernel.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.Utils/BuildingBlocks.Utils.csproj" />
     </Folder>
     <Folder Name="/Database/">
-        <Project Path="Database/Easebnb.Database/Easebnb.Database.csproj"/>
+        <Project Path="Database/Easebnb.Database/Easebnb.Database.csproj" />
     </Folder>
-    <Folder Name="/Modules/"/>
+    <Folder Name="/Modules/" />
     <Folder Name="/Modules/Identity/">
-        <Project Path="Modules/Identity/Easebnb.Identity.Application/Easebnb.Identity.Core.csproj"/>
-        <Project Path="Modules/Identity/Easebnb.Identity.Infrastructure/Easebnb.Identity.Infrastructure.csproj"/>
+        <Project Path="Modules/Identity/Easebnb.Identity.Application/Easebnb.Identity.Core.csproj" />
+        <Project Path="Modules/Identity/Easebnb.Identity.Infrastructure/Easebnb.Identity.Infrastructure.csproj" />
     </Folder>
-    <Project Path="Easebnb.ServiceDefaults/Easebnb.ServiceDefaults.csproj"/>
-    <Project Path="Easebnb.WebApi/Easebnb.WebApi.csproj"/>
+    <Folder Name="/Modules/Organization/" />
+    <Project Path="Easebnb.ServiceDefaults/Easebnb.ServiceDefaults.csproj" />
+    <Project Path="Easebnb.WebApi/Easebnb.WebApi.csproj" />
 </Solution>

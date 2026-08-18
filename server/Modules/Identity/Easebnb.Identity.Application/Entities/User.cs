@@ -6,6 +6,8 @@ namespace Easebnb.Identity.Core.Entities;
 
 public class User : IdentityUser<Guid>, IEntityBase<Guid>, IAggregateRoot, IHasDomainEvents, IAuditableEntity
 {
+    public string? ProfilePictureKey { get; set; }
+
     private List<IDomainEvent>? _domainEvents;
 
     public DateTime CreatedAt { get; set; }
