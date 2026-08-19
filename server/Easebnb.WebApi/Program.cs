@@ -1,21 +1,28 @@
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using BuildingBlocks.Endpoints;
-using BuildingBlocks.Infrastructure;
 using BuildingBlocks.Infrastructure.DomainEvent;
 using BuildingBlocks.Infrastructure.ObjectStorage.S3;
 using BuildingBlocks.SharedKernel;
 using DotNetEnv;
 using Scalar.AspNetCore;
-using Easebnb.Database;
 using Easebnb.Identity.Infrastructure;
 using Easebnb.Identity.Infrastructure.Database;
 using Easebnb.WebApi;
 using Easebnb.WebApi.Extensions;
+using Easebnb.WebApi.Modules.Identity.Auth;
+using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
+using Serilog;
+using Serilog.Context;
+using Serilog.Sinks.OpenTelemetry;
 
+Serilog.Debugging.SelfLog.Enable(Console.Error); 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 var uploadSettings = builder.Configuration.GetSection("UploadSettings").Get<UploadSettings>()
@@ -24,6 +31,26 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = uploadSettings.GlobalMaxBodySizeBytes;
 });
+
+builder.Host.UseSerilog((context, services, config) =>
+{
+    config
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+
+    var otlpEndpoint = context.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+
+    if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+    {
+        config.WriteTo.OpenTelemetry(options =>
+        {
+            options.Endpoint = otlpEndpoint;
+            options.Protocol = OtlpProtocol.Grpc;
+        });
+    }
+});
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = uploadSettings.GlobalMaxBodySizeBytes;
@@ -79,6 +106,43 @@ builder.Services.AddCors(options =>
 builder.Services.AddS3ObjectStorage(builder.Configuration);
 
 var app = builder.Build();
+app.UseExceptionHandler(o =>
+{
+    o.Run(async context =>
+    {
+        var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+        if (exceptionFeature is null) return;
+
+        var handler = context.RequestServices.GetRequiredService<GlobalExceptionHandler>();
+        await handler.TryHandleAsync(context, exceptionFeature.Error, CancellationToken.None);
+    });
+});
+
+app.Use(async (context, next) =>
+{
+    var traceId = Activity.Current?.TraceId.ToString()
+                  ?? context.TraceIdentifier;
+
+    using (LogContext.PushProperty("TraceId", traceId))
+    {
+        await next();
+    }
+});
+
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms | TraceId: {TraceId}";
+
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("TraceId",
+            Activity.Current?.TraceId.ToString() ?? httpContext.TraceIdentifier);
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent);
+    };
+});
+
 app.UseCors("AllowAll");
 app.UseForwardedHeaders();
 app.UseStatusCodePages();
