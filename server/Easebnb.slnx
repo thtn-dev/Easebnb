@@ -17,6 +17,9 @@
         <Project Path="Modules/Identity/Easebnb.Identity.Application/Easebnb.Identity.Core.csproj" />
         <Project Path="Modules/Identity/Easebnb.Identity.Infrastructure/Easebnb.Identity.Infrastructure.csproj" />
     </Folder>
+    <Folder Name="/Modules/Identity/tests/">
+        <Project Path="Modules/Identity/tests/Easebnb.Identity.IntegrationTests/Easebnb.Identity.IntegrationTests.csproj" />
+    </Folder>
     <Folder Name="/Modules/Organization/" />
     <Project Path="Easebnb.ServiceDefaults/Easebnb.ServiceDefaults.csproj" />
     <Project Path="Easebnb.WebApi/Easebnb.WebApi.csproj" />
