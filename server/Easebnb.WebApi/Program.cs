@@ -45,7 +45,7 @@ builder.Services.Configure<AvatarUploadSettings>(
 builder.Services.ConfigureOpenApi();
 builder.AddServiceDefaults();
 
-var databaseSection = builder.Configuration.GetSection(DatabaseSettings.SectionName);
+
 
 #region Domain Event
 {
@@ -56,16 +56,7 @@ var databaseSection = builder.Configuration.GetSection(DatabaseSettings.SectionN
 
 #region Identity Module
 {
-    builder.Services.AddOptions<DatabaseSettings>()
-    .Bind(databaseSection)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-    builder.Services.AddDatabase<AppIdentityDbContext>("Identity");
-    builder.Services.AddScoped<IUnitOfWork, UnitOfWork<AppIdentityDbContext>>();
-
-    builder.Services.AddAspNetIdentityServices(builder.Configuration);
-    builder.Services.AddIdentityModule();
+    builder.Services.AddIdentityModule(builder.Configuration);
 }
 #endregion
 
