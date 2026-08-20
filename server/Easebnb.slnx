@@ -19,6 +19,7 @@
     </Folder>
     <Folder Name="/Modules/Identity/tests/">
         <Project Path="Modules/Identity/tests/Easebnb.Identity.IntegrationTests/Easebnb.Identity.IntegrationTests.csproj" />
+        <Project Path="Modules/Identity/tests/Easebnb.Identity.UnitTests/Easebnb.Identity.UnitTests.csproj" />
     </Folder>
     <Folder Name="/Modules/Organization/" />
     <Project Path="Easebnb.ServiceDefaults/Easebnb.ServiceDefaults.csproj" />
