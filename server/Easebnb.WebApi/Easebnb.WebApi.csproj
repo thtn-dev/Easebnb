@@ -8,10 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DotNetEnv" Version="3.2.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-        <PackageReference Include="Scalar.AspNetCore" Version="2.16.5" />
+        <PackageReference Include="DotNetEnv" Version="3.2.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10"/>
+        <PackageReference Include="Scalar.AspNetCore" Version="2.16.5"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,19 +20,19 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
-        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
-        <PackageReference Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
-        <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
-        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
-        <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
+        <PackageReference Include="Microsoft.OpenApi" Version="2.11.0"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Enrichers.CorrelationId" Version="3.0.1"/>
+        <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1"/>
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0"/>
+        <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.Endpoints\BuildingBlocks.Endpoints.csproj" />
-        <ProjectReference Include="..\Modules\Identity\Easebnb.Identity.Application\Easebnb.Identity.Core.csproj" />
-        <ProjectReference Include="..\Modules\Identity\Easebnb.Identity.Infrastructure\Easebnb.Identity.Infrastructure.csproj" />
-        <ProjectReference Include="..\Easebnb.ServiceDefaults\Easebnb.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.Endpoints\BuildingBlocks.Endpoints.csproj"/>
+        <ProjectReference Include="..\Modules\Identity\Easebnb.Identity.Application\Easebnb.Identity.Core.csproj"/>
+        <ProjectReference Include="..\Modules\Identity\Easebnb.Identity.Infrastructure\Easebnb.Identity.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Easebnb.ServiceDefaults\Easebnb.ServiceDefaults.csproj"/>
     </ItemGroup>
 
 </Project>

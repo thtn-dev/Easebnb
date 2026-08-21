@@ -2,7 +2,6 @@
 
 namespace BuildingBlocks.UnitTests;
 
-
 public class UserIdTests
 {
     [Fact]

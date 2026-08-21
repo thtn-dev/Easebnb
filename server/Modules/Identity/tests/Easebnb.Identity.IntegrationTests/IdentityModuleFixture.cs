@@ -20,6 +20,7 @@ public class IdentityModuleFixture : IAsyncLifetime
 
     public IServiceProvider Services { get; set; } = null!;
     public Mock<IObjectStorage> ObjectStorageMock { get; } = new();
+
     public async Task InitializeAsync()
     {
         await _dbContainer.StartAsync();
@@ -46,5 +47,8 @@ public class IdentityModuleFixture : IAsyncLifetime
         await db.Database.MigrateAsync();
     }
 
-    public async Task DisposeAsync() => await _dbContainer.DisposeAsync();
+    public async Task DisposeAsync()
+    {
+        await _dbContainer.DisposeAsync();
+    }
 }

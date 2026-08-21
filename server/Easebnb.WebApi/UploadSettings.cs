@@ -2,7 +2,7 @@
 
 public sealed class UploadSettings
 {
-    public long GlobalMaxBodySizeBytes { get; set; } =  30 * 1024 * 1024; // 30MB
+    public long GlobalMaxBodySizeBytes { get; set; } = 30 * 1024 * 1024; // 30MB
 }
 
 public sealed class AvatarUploadSettings

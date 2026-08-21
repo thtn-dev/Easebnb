@@ -19,7 +19,7 @@ using Serilog;
 using Serilog.Context;
 using Serilog.Sinks.OpenTelemetry;
 
-Serilog.Debugging.SelfLog.Enable(Console.Error); 
+Serilog.Debugging.SelfLog.Enable(Console.Error);
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 Env.Load();
 
@@ -42,13 +42,11 @@ builder.Host.UseSerilog((context, services, config) =>
     var otlpEndpoint = context.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
 
     if (!string.IsNullOrWhiteSpace(otlpEndpoint))
-    {
         config.WriteTo.OpenTelemetry(options =>
         {
             options.Endpoint = otlpEndpoint;
             options.Protocol = OtlpProtocol.Grpc;
         });
-    }
 });
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.Configure<FormOptions>(options =>
@@ -59,7 +57,7 @@ builder.Services.Configure<FormOptions>(options =>
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
- 
+
     options.AddFixedWindowLimiter("file-upload", opt =>
     {
         opt.PermitLimit = 10;
@@ -73,23 +71,24 @@ builder.Services.ConfigureOpenApi();
 builder.AddServiceDefaults();
 
 
-
 #region Domain Event
+
 {
     builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
     builder.Services.AddScoped<IDomainEventsAccessor, DomainEventsAccessor<AppIdentityDbContext>>();
 }
+
 #endregion
 
 #region Identity Module
+
 {
     builder.Services.AddIdentityModule(builder.Configuration);
 }
+
 #endregion
 
-builder.Services.AddMediatR(cfg => { 
-    cfg.RegisterServicesFromAssembly(typeof(AppIdentityDbContext).Assembly); 
-});
+builder.Services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(typeof(AppIdentityDbContext).Assembly); });
 builder.Services.AddApi<Program>();
 builder.Services.AddProblemDetails();
 builder.Services.AddCors(options =>

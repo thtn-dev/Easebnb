@@ -5,10 +5,10 @@ using System.Net;
 
 namespace BuildingBlocks.Infrastructure.ObjectStorage.S3;
 
-
 public sealed class S3ObjectStorage(IAmazonS3 client) : IObjectStorage
 {
-    public async Task<PutObjectResult> PutAsync(Application.ObjectStorage.Abstractions.PutObjectRequest request, CancellationToken ct)
+    public async Task<PutObjectResult> PutAsync(Application.ObjectStorage.Abstractions.PutObjectRequest request,
+        CancellationToken ct)
     {
         try
         {
@@ -16,9 +16,9 @@ public sealed class S3ObjectStorage(IAmazonS3 client) : IObjectStorage
             {
                 BucketName = request.Bucket,
                 Key = request.Key,
-                InputStream = request.Content,   
+                InputStream = request.Content,
                 ContentType = request.ContentType,
-                AutoCloseStream = false          
+                AutoCloseStream = false
             };
             if (request.Metadata is not null)
                 foreach (var (k, v) in request.Metadata)
@@ -77,13 +77,18 @@ public sealed class S3ObjectStorage(IAmazonS3 client) : IObjectStorage
     }
 
     public async Task<bool> ExistsAsync(string bucket, string key, CancellationToken ct)
-        => await HeadAsync(bucket, key, ct) is not null;
+    {
+        return await HeadAsync(bucket, key, ct) is not null;
+    }
 
     public async Task DeleteAsync(string bucket, string key, CancellationToken ct)
-        => await client.DeleteObjectAsync(bucket, key, ct);
+    {
+        await client.DeleteObjectAsync(bucket, key, ct);
+    }
 
     public async Task<MultipartUploadHandle> InitiateMultipartUploadAsync(
-        string bucket, string key, string? contentType, IReadOnlyDictionary<string, string>? metadata, CancellationToken ct)
+        string bucket, string key, string? contentType, IReadOnlyDictionary<string, string>? metadata,
+        CancellationToken ct)
     {
         var response = await client.InitiateMultipartUploadAsync(new InitiateMultipartUploadRequest
         {
@@ -95,7 +100,8 @@ public sealed class S3ObjectStorage(IAmazonS3 client) : IObjectStorage
         return new MultipartUploadHandle { Bucket = bucket, Key = key, UploadId = response.UploadId };
     }
 
-    public async Task<UploadedPart> UploadPartAsync(Application.ObjectStorage.Abstractions.UploadPartRequest request, CancellationToken ct)
+    public async Task<UploadedPart> UploadPartAsync(Application.ObjectStorage.Abstractions.UploadPartRequest request,
+        CancellationToken ct)
     {
         var response = await client.UploadPartAsync(new Amazon.S3.Model.UploadPartRequest
         {
@@ -103,7 +109,7 @@ public sealed class S3ObjectStorage(IAmazonS3 client) : IObjectStorage
             Key = request.Upload.Key,
             UploadId = request.Upload.UploadId,
             PartNumber = request.PartNumber,
-            InputStream = request.Content,
+            InputStream = request.Content
         }, ct);
 
         return new UploadedPart { PartNumber = request.PartNumber, ETag = response.ETag };
@@ -124,34 +130,42 @@ public sealed class S3ObjectStorage(IAmazonS3 client) : IObjectStorage
     }
 
     public Task AbortMultipartUploadAsync(MultipartUploadHandle upload, CancellationToken ct)
-        => client.AbortMultipartUploadAsync(upload.Bucket, upload.Key, upload.UploadId, ct);
+    {
+        return client.AbortMultipartUploadAsync(upload.Bucket, upload.Key, upload.UploadId, ct);
+    }
 
     private static ObjectMetadata MapMetadata(
         string bucket,
         string key,
-        GetObjectResponse r) => new()
+        GetObjectResponse r)
     {
-        Bucket = bucket,
-        Key = key,
-        ContentType = r.Headers.ContentType,
-        ContentLength = r.Headers.ContentLength,
-        ETag = r.ETag,
-        VersionId = r.VersionId,
-        LastModified = r.LastModified,
-        UserMetadata = r.Metadata.Keys.ToDictionary(
-        k => k,
-        k => r.Metadata[k])
-    };
+        return new ObjectMetadata
+        {
+            Bucket = bucket,
+            Key = key,
+            ContentType = r.Headers.ContentType,
+            ContentLength = r.Headers.ContentLength,
+            ETag = r.ETag,
+            VersionId = r.VersionId,
+            LastModified = r.LastModified,
+            UserMetadata = r.Metadata.Keys.ToDictionary(
+                k => k,
+                k => r.Metadata[k])
+        };
+    }
 
-    private static ObjectMetadata MapMetadata(string bucket, string key, GetObjectMetadataResponse r) => new()
+    private static ObjectMetadata MapMetadata(string bucket, string key, GetObjectMetadataResponse r)
     {
-        Bucket = bucket,
-        Key = key,
-        ContentType = r.Headers.ContentType,
-        ContentLength = r.Headers.ContentLength,
-        ETag = r.ETag,
-        VersionId = r.VersionId,
-        LastModified = r.LastModified,
-        UserMetadata = r.Metadata.Keys.ToDictionary(k => k, k => r.Metadata[k])
-    };
+        return new ObjectMetadata
+        {
+            Bucket = bucket,
+            Key = key,
+            ContentType = r.Headers.ContentType,
+            ContentLength = r.Headers.ContentLength,
+            ETag = r.ETag,
+            VersionId = r.VersionId,
+            LastModified = r.LastModified,
+            UserMetadata = r.Metadata.Keys.ToDictionary(k => k, k => r.Metadata[k])
+        };
+    }
 }

@@ -24,7 +24,10 @@ public abstract class IdentityModuleTestBase : IAsyncLifetime
         AccountService = Scope.ServiceProvider.GetRequiredService<IAccountService>();
     }
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
 
     public async Task DisposeAsync()
     {
@@ -36,4 +39,6 @@ public abstract class IdentityModuleTestBase : IAsyncLifetime
 }
 
 [CollectionDefinition("IdentityModule")]
-public class IdentityModuleCollection : ICollectionFixture<IdentityModuleFixture> { }
+public class IdentityModuleCollection : ICollectionFixture<IdentityModuleFixture>
+{
+}

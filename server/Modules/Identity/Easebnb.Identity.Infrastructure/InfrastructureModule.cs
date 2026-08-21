@@ -15,68 +15,67 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Easebnb.Identity.Infrastructure;
 
-public static class InfrastructureModule 
+public static class InfrastructureModule
 {
-   extension(IServiceCollection services)
-   {
-       public IServiceCollection AddIdentityModule(IConfiguration configuration)
-       {
-           var databaseSection = configuration.GetSection(DatabaseSettings.SectionName);
-           services.AddOptions<DatabaseSettings>()
-               .Bind(databaseSection)
-               .ValidateDataAnnotations()
-               .ValidateOnStart();
-           services.AddScoped<IUnitOfWork, UnitOfWork<AppIdentityDbContext>>();
-           services.AddAspNetIdentityServices(configuration);
-           services.AddDatabase<AppIdentityDbContext>("Identity");
-           services.AddScoped<IJwtService, JwtService>();
-           services.AddScoped<IAuthService, AuthService>();
-           services.AddScoped<IRsaKeyProvider, RsaKeyProvider>();
-           services.AddScoped<IAccountService, AccountService>();
-        
-           return services;
-       }
+    extension(IServiceCollection services)
+    {
+        public IServiceCollection AddIdentityModule(IConfiguration configuration)
+        {
+            var databaseSection = configuration.GetSection(DatabaseSettings.SectionName);
+            services.AddOptions<DatabaseSettings>()
+                .Bind(databaseSection)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+            services.AddScoped<IUnitOfWork, UnitOfWork<AppIdentityDbContext>>();
+            services.AddAspNetIdentityServices(configuration);
+            services.AddDatabase<AppIdentityDbContext>("Identity");
+            services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRsaKeyProvider, RsaKeyProvider>();
+            services.AddScoped<IAccountService, AccountService>();
 
-       private void AddAspNetIdentityServices(IConfiguration configuration)
-       {
-           var jwtSettingsSection = configuration.GetSection(JwtSettings.SectionName);
-           services.AddOptions<JwtSettings>()
-               .Bind(jwtSettingsSection)
-               .ValidateDataAnnotations()
-               .ValidateOnStart();
+            return services;
+        }
 
-           services.AddIdentity<User, Role>(options =>
-               {
-                   options.Password.RequireDigit = true;
-                   options.Password.RequireLowercase = true;
-                   options.Password.RequireUppercase = true;
-                   options.Password.RequireNonAlphanumeric = false;
-                   options.Password.RequiredLength = 6;
+        private void AddAspNetIdentityServices(IConfiguration configuration)
+        {
+            var jwtSettingsSection = configuration.GetSection(JwtSettings.SectionName);
+            services.AddOptions<JwtSettings>()
+                .Bind(jwtSettingsSection)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
-                   options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                   options.Lockout.MaxFailedAccessAttempts = 5;
-                   options.Lockout.AllowedForNewUsers = true;
+            services.AddIdentity<User, Role>(options =>
+                {
+                    options.Password.RequireDigit = true;
+                    options.Password.RequireLowercase = true;
+                    options.Password.RequireUppercase = true;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequiredLength = 6;
 
-                   options.User.RequireUniqueEmail = true;
-                   options.SignIn.RequireConfirmedEmail = false;
-               })
-               .AddEntityFrameworkStores<AppIdentityDbContext>()
-               .AddDefaultTokenProviders();
+                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                    options.Lockout.MaxFailedAccessAttempts = 5;
+                    options.Lockout.AllowedForNewUsers = true;
 
-           services.AddAuthentication(options =>
-               {
-                   options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                   options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                   options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-               })
-               .AddJwtBearer();
-           services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
+                    options.User.RequireUniqueEmail = true;
+                    options.SignIn.RequireConfirmedEmail = false;
+                })
+                .AddEntityFrameworkStores<AppIdentityDbContext>()
+                .AddDefaultTokenProviders();
 
-           services.AddAuthorization();
-       }
-   }
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer();
+            services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
+
+            services.AddAuthorization();
+        }
+    }
 }
-
 
 public sealed class ConfigureJwtBearerOptions(
     IOptions<JwtSettings> jwtSettings,

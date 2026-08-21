@@ -3,13 +3,18 @@ using Microsoft.AspNetCore.Http.Features;
 
 namespace Easebnb.WebApi.Extensions;
 
-
 public readonly record struct FileValidationResult(bool IsValid, string? Error)
 {
-    public static FileValidationResult Ok() => new(true, null);
-    public static FileValidationResult Fail(string error) => new(false, error);
-}
+    public static FileValidationResult Ok()
+    {
+        return new FileValidationResult(true, null);
+    }
 
+    public static FileValidationResult Fail(string error)
+    {
+        return new FileValidationResult(false, error);
+    }
+}
 
 /// <summary>
 /// Security extension methods for <see cref="IFormFile"/>.
@@ -121,7 +126,9 @@ public static class HttpRequestExtensions
     }
 
     /// <summary>Checks whether the request is multipart/form-data (early rejection for incorrect content type).</summary>
-    public static bool IsMultipartFormData(this HttpRequest request) =>
-        !string.IsNullOrEmpty(request.ContentType)
-        && request.ContentType.Contains("multipart/form-data", StringComparison.OrdinalIgnoreCase);
+    public static bool IsMultipartFormData(this HttpRequest request)
+    {
+        return !string.IsNullOrEmpty(request.ContentType)
+               && request.ContentType.Contains("multipart/form-data", StringComparison.OrdinalIgnoreCase);
+    }
 }

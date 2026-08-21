@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Easebnb.Identity.UnitTests.Services;
+
 public class JwtServiceTests : IDisposable
 {
     private readonly RSA _privateRsa;
@@ -101,8 +102,7 @@ public class JwtServiceTests : IDisposable
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
         // Assert
-        var jti = jwt.Claims.FirstOrDefault(
-            c => c.Type == JwtRegisteredClaimNames.Jti);
+        var jti = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti);
 
         jti.Should().NotBeNull();
         Guid.TryParse(jti.Value, out _).Should().BeTrue();
@@ -294,12 +294,12 @@ public class JwtServiceTests : IDisposable
             SecurityAlgorithms.RsaSsaPssSha256);
 
         var token = new JwtSecurityToken(
-            issuer: _settings.Issuer,
-            audience: _settings.Audience,
-            claims: claims,
-            notBefore: now.AddMinutes(-20),
-            expires: now.AddMinutes(-10),
-            signingCredentials: credentials);
+            _settings.Issuer,
+            _settings.Audience,
+            claims,
+            now.AddMinutes(-20),
+            now.AddMinutes(-10),
+            credentials);
 
         var tokenString = new JwtSecurityTokenHandler()
             .WriteToken(token);
@@ -316,8 +316,7 @@ public class JwtServiceTests : IDisposable
         principal.FindFirstValue(JwtRegisteredClaimNames.UniqueName)
             .Should().Be("john.doe");
 
-        principal.Claims.Should().Contain(
-            c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+        principal.Claims.Should().Contain(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
     }
 
     [Fact]
@@ -488,7 +487,7 @@ public class JwtServiceTests : IDisposable
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    
+
     public void Dispose()
     {
         _privateRsa.Dispose();
@@ -500,9 +499,9 @@ public class JwtServiceTests : IDisposable
         RSA privateRsa,
         RSA publicRsa) : IRsaKeyProvider
     {
-        public RsaSecurityKey PrivateKey { get; } = new RsaSecurityKey(privateRsa);
+        public RsaSecurityKey PrivateKey { get; } = new(privateRsa);
 
-        public RsaSecurityKey PublicKey { get; } = new RsaSecurityKey(publicRsa);
+        public RsaSecurityKey PublicKey { get; } = new(publicRsa);
 
         public ValueTask DisposeAsync()
         {

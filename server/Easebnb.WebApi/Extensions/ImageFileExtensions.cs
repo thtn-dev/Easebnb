@@ -25,7 +25,7 @@ public static class ImageFileExtensions
         CancellationToken ct = default)
     {
         await using var input = file.OpenReadStream();
- 
+
         Image image;
         try
         {
@@ -35,7 +35,7 @@ public static class ImageFileExtensions
         {
             return null;
         }
- 
+
         using (image)
         {
             image.Mutate(x => x.Resize(new ResizeOptions
@@ -43,7 +43,7 @@ public static class ImageFileExtensions
                 Size = new Size(maxDimension, maxDimension),
                 Mode = ResizeMode.Max
             }));
- 
+
             var output = new MemoryStream();
             await image.SaveAsync(output, new JpegEncoder { Quality = quality }, ct);
             output.Position = 0;

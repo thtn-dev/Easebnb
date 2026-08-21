@@ -225,7 +225,6 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
             // DB update succeeded -> remove old object
             if (!string.IsNullOrWhiteSpace(oldKey) &&
                 !string.Equals(oldKey, newKey, StringComparison.Ordinal))
-            {
                 try
                 {
                     await objectStorage.DeleteAsync(
@@ -240,7 +239,6 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
                     //
                     // Consider logging this and retrying asynchronously.
                 }
-            }
 
             return Result.Success;
         }
