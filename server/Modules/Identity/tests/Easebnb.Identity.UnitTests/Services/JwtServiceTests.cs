@@ -50,13 +50,13 @@ public class JwtServiceTests : IDisposable
             []);
 
         // Assert
-        Assert.False(string.IsNullOrWhiteSpace(token));
+        token.Should().NotBeNullOrWhiteSpace();
 
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
-        Assert.Equal("Easebnb", jwt.Issuer);
-        Assert.Contains("Easebnb.Api", jwt.Audiences);
-        Assert.Equal(SecurityAlgorithms.RsaSsaPssSha256, jwt.Header.Alg);
+        jwt.Issuer.Should().Be("Easebnb");
+        jwt.Audiences.Should().Contain("Easebnb.Api");
+        jwt.Header.Alg.Should().Be(SecurityAlgorithms.RsaSsaPssSha256);
     }
 
     [Fact]
@@ -71,9 +71,7 @@ public class JwtServiceTests : IDisposable
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
         // Assert
-        Assert.Equal(
-            "user-123",
-            jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value);
+        "user-123".Should().Be(jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value);
     }
 
     [Fact]
@@ -88,9 +86,7 @@ public class JwtServiceTests : IDisposable
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
         // Assert
-        Assert.Equal(
-            "john.doe",
-            jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.UniqueName).Value);
+        "john.doe".Should().Be(jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.UniqueName).Value);
     }
 
     [Fact]
@@ -108,8 +104,8 @@ public class JwtServiceTests : IDisposable
         var jti = jwt.Claims.FirstOrDefault(
             c => c.Type == JwtRegisteredClaimNames.Jti);
 
-        Assert.NotNull(jti);
-        Assert.True(Guid.TryParse(jti.Value, out _));
+        jti.Should().NotBeNull();
+        Guid.TryParse(jti.Value, out _).Should().BeTrue();
     }
 
     [Fact]
@@ -136,9 +132,9 @@ public class JwtServiceTests : IDisposable
             .Select(c => c.Value)
             .ToList();
 
-        Assert.Equal(2, tokenRoles.Count);
-        Assert.Contains("Admin", tokenRoles);
-        Assert.Contains("Host", tokenRoles);
+        tokenRoles.Should().HaveCount(2);
+        tokenRoles.Should().Contain("Admin");
+        tokenRoles.Should().Contain("Host");
     }
 
     [Fact]
@@ -161,13 +157,11 @@ public class JwtServiceTests : IDisposable
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
         // Assert
-        Assert.Equal(
-            "john@example.com",
-            jwt.Claims.First(c => c.Type == "email").Value);
+        jwt.Claims.First(c => c.Type == "email").Value
+            .Should().Be("john@example.com");
 
-        Assert.Equal(
-            "tenant-123",
-            jwt.Claims.First(c => c.Type == "tenant_id").Value);
+        jwt.Claims.First(c => c.Type == "tenant_id").Value
+            .Should().Be("tenant-123");
     }
 
     [Fact]
@@ -184,7 +178,8 @@ public class JwtServiceTests : IDisposable
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
         // Assert
-        Assert.InRange(jwt.ValidTo, before, after);
+        jwt.ValidTo.Should().BeAfter(before);
+        jwt.ValidTo.Should().BeBefore(after);
     }
 
     [Fact]
@@ -208,7 +203,7 @@ public class JwtServiceTests : IDisposable
         var jti1 = jwt1.Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
         var jti2 = jwt2.Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
 
-        Assert.NotEqual(jti1, jti2);
+        jti1.Should().NotBe(jti2);
     }
 
     [Fact]
@@ -245,8 +240,8 @@ public class JwtServiceTests : IDisposable
                 out var validatedToken);
 
         // Assert
-        Assert.NotNull(principal);
-        Assert.NotNull(validatedToken);
+        principal.Should().NotBeNull();
+        validatedToken.Should().NotBeNull();
     }
 
     [Fact]
@@ -256,7 +251,7 @@ public class JwtServiceTests : IDisposable
         var token = _sut.GenerateRefreshToken();
 
         // Assert
-        Assert.False(string.IsNullOrWhiteSpace(token));
+        token.Should().NotBeNullOrWhiteSpace();
     }
 
     [Fact]
@@ -267,7 +262,7 @@ public class JwtServiceTests : IDisposable
         var token2 = _sut.GenerateRefreshToken();
 
         // Assert
-        Assert.NotEqual(token1, token2);
+        token1.Should().NotBe(token2);
     }
 
     [Fact]
@@ -277,7 +272,7 @@ public class JwtServiceTests : IDisposable
         var token = _sut.GenerateRefreshToken();
 
         // 64 random bytes -> Base64 string = 88 characters
-        Assert.Equal(88, token.Length);
+        token.Length.Should().Be(88);
     }
 
     [Fact]
@@ -313,18 +308,15 @@ public class JwtServiceTests : IDisposable
         var principal = _sut.GetPrincipalFromExpiredToken(tokenString);
 
         // Assert
-        Assert.NotNull(principal);
+        principal.Should().NotBeNull();
 
-        Assert.Equal(
-            "user-123",
-            principal.FindFirstValue(JwtRegisteredClaimNames.Sub));
+        principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            .Should().Be("user-123");
 
-        Assert.Equal(
-            "john.doe",
-            principal.FindFirstValue(JwtRegisteredClaimNames.UniqueName));
+        principal.FindFirstValue(JwtRegisteredClaimNames.UniqueName)
+            .Should().Be("john.doe");
 
-        Assert.Contains(
-            principal.Claims,
+        principal.Claims.Should().Contain(
             c => c.Type == ClaimTypes.Role && c.Value == "Admin");
     }
 
@@ -349,7 +341,7 @@ public class JwtServiceTests : IDisposable
         var principal = _sut.GetPrincipalFromExpiredToken(invalidToken);
 
         // Assert
-        Assert.Null(principal);
+        principal.Should().BeNull();
     }
 
     [Fact]
@@ -373,7 +365,7 @@ public class JwtServiceTests : IDisposable
         var principal = _sut.GetPrincipalFromExpiredToken(invalidToken);
 
         // Assert
-        Assert.Null(principal);
+        principal.Should().BeNull();
     }
 
     [Fact]
@@ -397,7 +389,7 @@ public class JwtServiceTests : IDisposable
         var principal = _sut.GetPrincipalFromExpiredToken(invalidToken);
 
         // Assert
-        Assert.Null(principal);
+        principal.Should().BeNull();
     }
 
     [Fact]
@@ -412,7 +404,7 @@ public class JwtServiceTests : IDisposable
         var principal = _sut.GetPrincipalFromExpiredToken(token);
 
         // Assert
-        Assert.Null(principal);
+        principal.Should().BeNull();
     }
 
     [Fact]
@@ -423,7 +415,7 @@ public class JwtServiceTests : IDisposable
             "this-is-not-a-jwt");
 
         // Assert
-        Assert.Null(principal);
+        principal.Should().BeNull();
     }
 
     private string CreateTokenWithSettings(

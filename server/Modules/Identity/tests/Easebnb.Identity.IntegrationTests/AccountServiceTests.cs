@@ -1,6 +1,5 @@
 ﻿using Easebnb.Identity.Core.Dtos;
 using Easebnb.Identity.Core.Entities;
-using FluentAssertions;
 
 namespace Easebnb.Identity.IntegrationTests;
 

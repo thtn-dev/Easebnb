@@ -15,11 +15,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="..\BuildingBlocks.Tests.Base\BuildingBlocks.Tests.Base.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\BuildingBlocks\tests\BuildingBlocks.Tests.Base\BuildingBlocks.Tests.Base.csproj" />
-    <ProjectReference Include="..\..\Easebnb.Identity.Infrastructure\Easebnb.Identity.Infrastructure.csproj" />
-  </ItemGroup>
+
 </Project>

@@ -9,6 +9,10 @@
         <Project Path="BuildingBlocks/BuildingBlocks.SharedKernel/BuildingBlocks.SharedKernel.csproj" />
         <Project Path="BuildingBlocks/BuildingBlocks.Utils/BuildingBlocks.Utils.csproj" />
     </Folder>
+    <Folder Name="/BuildingBlocks/tests/">
+        <Project Path="BuildingBlocks/tests/BuildingBlocks.Tests.Base/BuildingBlocks.Tests.Base.csproj" Id="0102b51c-0561-477c-a5ee-57b8ba0b9a59" />
+        <Project Path="BuildingBlocks/tests/BuildingBlocks.UnitTests/BuildingBlocks.UnitTests.csproj" Id="286570f4-48f9-4ccf-ad43-076187c7fe3c" />
+    </Folder>
     <Folder Name="/Database/">
         <Project Path="Database/Easebnb.Database/Easebnb.Database.csproj" />
     </Folder>
@@ -17,7 +21,7 @@
         <Project Path="Modules/Identity/Easebnb.Identity.Application/Easebnb.Identity.Core.csproj" />
         <Project Path="Modules/Identity/Easebnb.Identity.Infrastructure/Easebnb.Identity.Infrastructure.csproj" />
     </Folder>
-    <Folder Name="/Modules/Identity/tests/">
+    <Folder Name="/Modules/Identity/tests/" Id="62544c6a-225d-06c0-cd83-96be8ca89ea3">
         <Project Path="Modules/Identity/tests/Easebnb.Identity.IntegrationTests/Easebnb.Identity.IntegrationTests.csproj" />
         <Project Path="Modules/Identity/tests/Easebnb.Identity.UnitTests/Easebnb.Identity.UnitTests.csproj" />
     </Folder>
