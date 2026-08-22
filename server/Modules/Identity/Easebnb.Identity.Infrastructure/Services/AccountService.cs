@@ -13,16 +13,16 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
 {
     public async Task<ErrorOr<Success>> ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
     {
-        if (request.NewPassword != request.ConfirmNewPassword) return Error.Unexpected("New passwords do not match");
+        if (request.NewPassword != request.ConfirmNewPassword) return Error.Unexpected(description:"New passwords do not match");
 
         var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user == null) return Error.NotFound("User not found");
+        if (user == null) return Error.NotFound(description: "User not found");
 
         var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 
         if (result.Succeeded) return Result.Success;
         var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-        return Error.Validation("Password change failed: " + errors);
+        return Error.Validation(description: "Password change failed: " + errors);
     }
 
     public async Task<ErrorOr<Success>> ForgotPasswordAsync(ForgotPasswordRequest request)
@@ -45,10 +45,10 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
 
     public async Task<ErrorOr<Success>> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        if (request.NewPassword != request.ConfirmNewPassword) return Error.Validation("Passwords do not match");
+        if (request.NewPassword != request.ConfirmNewPassword) return Error.Validation(description: "Passwords do not match");
 
         var user = await userManager.FindByEmailAsync(request.Email);
-        if (user == null) return Error.Validation("Invalid request");
+        if (user == null) return Error.Validation(description: "Invalid request");
 
         // Decode token from URL
         var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Token));
@@ -57,13 +57,13 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
 
         if (result.Succeeded) return Result.Success;
         var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-        return Error.Validation($"Password reset failed: {errors}");
+        return Error.Validation(description: $"Password reset failed: {errors}");
     }
 
     public async Task<ErrorOr<Success>> ConfirmEmailAsync(ConfirmEmailRequest request)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
-        if (user == null) return Error.Validation("Invalid request");
+        if (user == null) return Error.Validation(description: "Invalid request");
 
         // Decode token from URL
         var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Token));
@@ -72,7 +72,7 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
 
         if (result.Succeeded) return Result.Success;
         var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-        return Error.Validation($"Email confirmation failed: {errors}");
+        return Error.Validation(description: $"Email confirmation failed: {errors}");
     }
 
     public async Task<ErrorOr<Success>> ResendEmailConfirmationAsync(ResendEmailConfirmationRequest request)
@@ -83,7 +83,7 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
         if (user == null)
             return Result.Success;
 
-        if (user.EmailConfirmed) return Error.Validation("Email is already confirmed");
+        if (user.EmailConfirmed) return Error.Validation(description: "Email is already confirmed");
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
@@ -99,7 +99,7 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
     public async Task<ErrorOr<UserInfo>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user == null) return Error.Validation("User not found");
+        if (user == null) return Error.Validation(description: "User not found");
 
         var updated = false;
 
@@ -109,7 +109,7 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
             // Check if email is already taken
             var existingUser = await userManager.FindByEmailAsync(request.Email);
             if (existingUser != null && existingUser.Id != userId)
-                return Error.Validation("Email is already taken");
+                return Error.Validation(description: "Email is already taken");
 
             var token = await userManager.GenerateChangeEmailTokenAsync(user, request.Email);
             var result = await userManager.ChangeEmailAsync(user, request.Email, token);
@@ -117,7 +117,7 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return Error.Validation($"Email update failed: {errors}");
+                return Error.Validation(description: $"Email update failed: {errors}");
             }
 
             updated = true;
@@ -132,13 +132,13 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return Error.Validation($"Phone number update failed: {errors}");
+                return Error.Validation(description: $"Phone number update failed: {errors}");
             }
 
             updated = true;
         }
 
-        if (!updated) return Error.Validation("No changes were made");
+        if (!updated) return Error.Validation(description: "No changes were made");
 
         var userInfo = new UserInfo(
             user.Id,
@@ -156,13 +156,13 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
         var user = await userManager.FindByIdAsync(userId.ToString());
 
         if (user == null)
-            return Error.NotFound("User not found");
+            return Error.NotFound(description: "User not found");
 
         if (request.Content.Length == 0)
-            return Error.Validation("Profile picture is required");
+            return Error.Validation(description: "Profile picture is required");
 
         if (string.IsNullOrWhiteSpace(request.ContentType))
-            return Error.Validation("Content type is required");
+            return Error.Validation(description: "Content type is required");
 
         var allowedContentTypes = new HashSet<string>(
             StringComparer.OrdinalIgnoreCase)
@@ -173,7 +173,7 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
         };
 
         if (!allowedContentTypes.Contains(request.ContentType))
-            return Error.Validation("Unsupported image type");
+            return Error.Validation(description: "Unsupported image type");
 
         const string bucket = "easebnb-users";
 
@@ -219,7 +219,7 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
                     updateResult.Errors.Select(e => e.Description));
 
                 return Error.Validation(
-                    $"Profile picture update failed: {errors}");
+                    description: $"Profile picture update failed: {errors}");
             }
 
             // DB update succeeded -> remove old object
@@ -245,7 +245,12 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
         catch (ObjectStorageException)
         {
             return Error.Unexpected(
-                "Failed to upload profile picture");
+                description: "Failed to upload profile picture");
+        }
+        catch (Exception)
+        {
+            return Error.Unexpected(
+                description: "An unexpected error occurred");
         }
     }
 }

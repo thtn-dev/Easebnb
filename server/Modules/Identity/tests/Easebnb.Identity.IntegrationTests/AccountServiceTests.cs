@@ -3,12 +3,8 @@ using Easebnb.Identity.Core.Entities;
 
 namespace Easebnb.Identity.IntegrationTests;
 
-public class AccountServiceTests : IdentityModuleTestBase
+public class AccountServiceTests(IdentityModuleFixture fixture) : IdentityModuleTestBase(fixture)
 {
-    public AccountServiceTests(IdentityModuleFixture fixture) : base(fixture)
-    {
-    }
-
     [Fact]
     public async Task ChangePassword_WithCorrectCurrentPassword_Succeeds()
     {
