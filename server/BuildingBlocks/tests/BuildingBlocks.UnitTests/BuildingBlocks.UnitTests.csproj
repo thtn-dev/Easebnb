@@ -17,6 +17,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\BuildingBlocks.Application\BuildingBlocks.Application.csproj"/>
         <ProjectReference Include="..\..\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\..\Database\Easebnb.Database\Easebnb.Database.csproj"/>
         <ProjectReference Include="..\BuildingBlocks.Tests.Base\BuildingBlocks.Tests.Base.csproj"/>
     </ItemGroup>
 
