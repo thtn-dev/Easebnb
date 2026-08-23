@@ -62,6 +62,9 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
+                    // MassTransit emits spans via the "MassTransit" ActivitySource,
+                    // so publish/consume/retry show up in traces once OTLP is enabled.
+                    .AddSource("MassTransit")
                     .AddAspNetCoreInstrumentation(options =>
                         // Exclude health check requests from tracing
                         options.Filter = context =>

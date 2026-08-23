@@ -2,8 +2,9 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\Database\Easebnb.Database\Easebnb.Database.csproj"/>
-        <ProjectReference Include="..\Easebnb.Identity.Application\Easebnb.Identity.Core.csproj"/>
+        <ProjectReference Include="..\Easebnb.Identity.Core\Easebnb.Identity.Core.csproj"/>
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.IntegrationEvents\BuildingBlocks.IntegrationEvents.csproj"/>
     </ItemGroup>
 
     <PropertyGroup>
@@ -14,6 +15,7 @@
 
     <ItemGroup>
         <PackageReference Include="Google.Apis.Auth" Version="1.75.0"/>
+        <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.10"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10"/>
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10"/>
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.10"/>

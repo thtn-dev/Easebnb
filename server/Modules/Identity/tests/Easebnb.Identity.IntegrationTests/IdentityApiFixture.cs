@@ -2,6 +2,7 @@ using BuildingBlocks.Application.ObjectStorage.Abstractions;
 using Easebnb.Identity.Core.Entities;
 using Easebnb.Identity.Infrastructure.Database;
 using Easebnb.Identity.Infrastructure.Services;
+using Easebnb.Organization.Infrastructure.Database;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -42,6 +43,9 @@ public sealed class IdentityApiFixture : WebApplicationFactory<Program>, IAsyncL
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Database:ConnectionString"] = _dbContainer.GetConnectionString(),
+                // Integration events flow over the in-memory transport in tests;
+                // never connect to a broker from the test host.
+                ["RabbitMq:Enabled"] = "false",
                 ["Jwt:Issuer"] = TestJwtKeys.Issuer,
                 ["Jwt:Audience"] = TestJwtKeys.Audience,
                 ["Jwt:PrivateKey"] = TestJwtKeys.PrivatePem,
@@ -66,6 +70,11 @@ public sealed class IdentityApiFixture : WebApplicationFactory<Program>, IAsyncL
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
         await db.Database.MigrateAsync();
+
+        // The integration-event consumers write into the organization schema
+        // (outbox/inbox + registered_users), so migrate it too.
+        var organizationDb = scope.ServiceProvider.GetRequiredService<OrganizationDbContext>();
+        await organizationDb.Database.MigrateAsync();
 
         // RegisterAsync assigns the "user" role, so it must exist before any
         // registration. Migrations only create the schema, not seed data.

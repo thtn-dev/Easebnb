@@ -1,9 +1,10 @@
 ﻿using System.Reflection;
+using Easebnb.Database.Extensions;
+using Easebnb.Identity.Core.Entities;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Easebnb.Database.Extensions;
-using Easebnb.Identity.Core.Entities;
 
 namespace Easebnb.Identity.Infrastructure.Database;
 
@@ -50,5 +51,9 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
         });
 
         modelBuilder.ApplyAuditableConventions();
+
+        // MassTransit transactional outbox/inbox state, kept inside this
+        // module's schema so the outbox moves with it if it is ever extracted.
+        modelBuilder.AddTransactionalOutboxEntities();
     }
 }

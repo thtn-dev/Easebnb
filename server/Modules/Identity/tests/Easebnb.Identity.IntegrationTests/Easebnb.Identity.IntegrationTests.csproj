@@ -23,6 +23,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\..\BuildingBlocks\tests\BuildingBlocks.Tests.Base\BuildingBlocks.Tests.Base.csproj" />
+        <ProjectReference Include="..\..\Easebnb.Identity.Core\Easebnb.Identity.Core.csproj" />
         <ProjectReference Include="..\..\Easebnb.Identity.Infrastructure\Easebnb.Identity.Infrastructure.csproj" />
         <ProjectReference Include="..\..\..\..\Easebnb.WebApi\Easebnb.WebApi.csproj" />
     </ItemGroup>

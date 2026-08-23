@@ -2,6 +2,7 @@
 using BuildingBlocks.SharedKernel;
 using Easebnb.Identity.Core.Dtos;
 using Easebnb.Identity.Core.Entities;
+using Easebnb.Identity.Core.Events;
 using Easebnb.Identity.Core.Interfaces;
 using Easebnb.Identity.Infrastructure.Database;
 using Easebnb.Identity.Infrastructure.Services;
@@ -210,10 +211,16 @@ public class AuthServiceTests : IDisposable
         _unitOfWorkMock.Verify(u => u.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
         createdUser.Should().NotBeNull();
         createdUser!.EmailConfirmed.Should().BeFalse();
-        var emailEvent = createdUser.DomainEvents.Should().ContainSingle().Which.Should().BeOfType<SendEmailEvent>().Subject;
+        var emailEvent = createdUser.DomainEvents.Should().ContainSingle(e => e is SendEmailEvent)
+            .Which.Should().BeOfType<SendEmailEvent>().Subject;
         emailEvent.Email.Should().Be("new@test.com");
         emailEvent.Subject.Should().Be("Confirm your email");
         emailEvent.Body.Should().Be("Please confirm your email by clicking the link.");
+        // Registration also raises a UserRegisteredDomainEvent for the
+        // integration-event bridge to publish to other modules.
+        createdUser.DomainEvents.Should().ContainSingle(e => e is UserRegisteredDomainEvent)
+            .Which.Should().BeOfType<UserRegisteredDomainEvent>()
+            .Which.Email.Should().Be("new@test.com");
     }
 
     // ---------------------------------------------------------------

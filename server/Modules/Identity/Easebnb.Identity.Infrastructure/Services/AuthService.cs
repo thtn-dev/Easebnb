@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Easebnb.Identity.Core.Dtos;
 using Easebnb.Identity.Core.Entities;
+using Easebnb.Identity.Core.Events;
 using Easebnb.Identity.Core.Interfaces;
 using Easebnb.Identity.Infrastructure.Database;
 
@@ -79,6 +80,7 @@ public class AuthService(
             var emailEvent = new SendEmailEvent(user.Email!, "Confirm your email",
                 "Please confirm your email by clicking the link.");
             user.AddDomainEvent(emailEvent);
+            user.AddDomainEvent(new UserRegisteredDomainEvent(user.Id, user.Email!, user.UserName));
             await unitOfWork.CommitTransactionAsync(cancellationToken);
             return Result.Success;
         }
