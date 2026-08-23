@@ -1,9 +1,7 @@
 using BuildingBlocks.Application.ObjectStorage.Abstractions;
 using Easebnb.Identity.Core.Entities;
-using Easebnb.Identity.Core.Interfaces;
 using Easebnb.Identity.Infrastructure.Database;
 using Easebnb.Identity.Infrastructure.Services;
-using Easebnb.Identity.Infrastructure.Settings;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -57,21 +55,6 @@ public sealed class IdentityApiFixture : WebApplicationFactory<Program>, IAsyncL
 
             services.RemoveAll<INotificationHandler<SendEmailEvent>>();
             services.AddSingleton<INotificationHandler<SendEmailEvent>>(EmailHandler);
-
-            // IdentityModel's crypto provider cache reuses signature providers by
-            // key id, so a scoped RsaKeyProvider whose RSA is disposed at the end
-            // of each request breaks every login after the first. One key pair per
-            // host lifetime avoids the disposed-RSA crash (see status report for
-            // the production-facing recommendation).
-            services.RemoveAll<IRsaKeyProvider>();
-            services.AddSingleton<IRsaKeyProvider>(_ => new RsaKeyProvider(
-                Microsoft.Extensions.Options.Options.Create(new JwtSettings
-                {
-                    PrivateKey = TestJwtKeys.PrivatePem,
-                    PublicKey = TestJwtKeys.PublicPem,
-                    Issuer = TestJwtKeys.Issuer,
-                    Audience = TestJwtKeys.Audience
-                })));
         });
     }
 

@@ -10,18 +10,11 @@ using Easebnb.Identity.Infrastructure.Database;
 
 namespace Easebnb.Identity.Infrastructure.Services;
 
-public class SendEmailEvent : DomainEventBase
+public class SendEmailEvent(string email, string subject, string body) : DomainEventBase
 {
-    public SendEmailEvent(string email, string subject, string body)
-    {
-        Email = email;
-        Subject = subject;
-        Body = body;
-    }
-
-    public string Email { get; }
-    public string Subject { get; }
-    public string Body { get; }
+    public string Email { get; } = email;
+    public string Subject { get; } = subject;
+    public string Body { get; } = body;
 }
 
 public class SendMailHandler(ILogger<SendMailHandler> logger) : INotificationHandler<SendEmailEvent>
@@ -58,28 +51,44 @@ public class AuthService(
 
         await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        var user = new User
+        try
         {
-            UserName = request.Username,
-            Email = request.Email,
-            EmailConfirmed = false
-        };
+            var user = new User
+            {
+                UserName = request.Username,
+                Email = request.Email,
+                EmailConfirmed = false
+            };
 
-        var result = await userManager.CreateAsync(user, request.Password);
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.ToDictionary(x => x.Code, x => x.Description);
-            return Error.Validation(errors.First().Key);
+            var result = await userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.ToDictionary(x => x.Code, x => x.Description);
+                await unitOfWork.RollbackTransactionAsync(cancellationToken);
+                return Error.Validation(errors.First().Key);
+            }
+
+            var roleResult = await userManager.AddToRoleAsync(user, "user");
+            if (!roleResult.Succeeded)
+            {
+                await unitOfWork.RollbackTransactionAsync(cancellationToken);
+                return Error.Unexpected(description: "Failed to assign the default role");
+            }
+
+            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+            var emailEvent = new SendEmailEvent(user.Email!, "Confirm your email",
+                "Please confirm your email by clicking the link.");
+            user.AddDomainEvent(emailEvent);
+            await unitOfWork.CommitTransactionAsync(cancellationToken);
+            return Result.Success;
         }
-
-        await userManager.AddToRoleAsync(user, "user");
-
-        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        var emailEvent = new SendEmailEvent(user.Email!, "Confirm your email",
-            "Please confirm your email by clicking the link.");
-        user.AddDomainEvent(emailEvent);
-        await unitOfWork.CommitTransactionAsync(cancellationToken);
-        return Result.Success;
+        catch
+        {
+            // UnitOfWork.RollbackTransactionAsync is a no-op when the
+            // transaction has already been released by CommitTransactionAsync.
+            await unitOfWork.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
     }
 
     public async Task<ErrorOr<LoginResponse>> LoginAsync(LoginRequest request, string ipAddress)
@@ -210,6 +219,7 @@ public class AuthService(
         token.IsRevoked = true;
         token.RevokedAt = DateTime.UtcNow;
         token.RevokedByIp = ipAddress;
+        await dbContext.SaveChangesAsync();
 
         return Result.Success;
     }

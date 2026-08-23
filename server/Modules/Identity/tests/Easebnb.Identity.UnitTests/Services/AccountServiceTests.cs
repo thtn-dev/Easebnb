@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using BuildingBlocks.Application.ObjectStorage.Abstractions;
+using ErrorOr;
 using Easebnb.Identity.Core.Dtos;
 using Easebnb.Identity.Core.Entities;
 using Easebnb.Identity.Infrastructure.Services;
@@ -43,13 +44,14 @@ public class AccountServiceTests
     // ---------------------------------------------------------------
  
     [Fact]
-    public async Task ChangePasswordAsync_WhenPasswordsDoNotMatch_ReturnsUnexpectedError()
+    public async Task ChangePasswordAsync_WhenPasswordsDoNotMatch_ReturnsValidationErrorWithoutTouchingStore()
     {
         var request = new ChangePasswordRequest("old", "new1", "new2");
- 
+
         var result = await _sut.ChangePasswordAsync(Guid.NewGuid(), request);
- 
+
         result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Validation);
         result.FirstError.Description.Should().Be("New passwords do not match");
         _userManagerMock.Verify(m => m.FindByIdAsync(It.IsAny<string>()), Times.Never);
     }

@@ -132,7 +132,7 @@ public class AuthServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task RegisterAsync_WhenUserCreationFails_ReturnsValidationErrorAndDoesNotCommit()
+    public async Task RegisterAsync_WhenUserCreationFails_ReturnsValidationErrorAndRollsBack()
     {
         var request = new RegisterRequest("user", "user@test.com", "weak", "weak");
         _userManagerMock
@@ -150,6 +150,34 @@ public class AuthServiceTests : IDisposable
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("PasswordTooShort");
         _unitOfWorkMock.Verify(u => u.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.RollbackTransactionAsync(It.IsAny<CancellationToken>()), Times.Once,
+            "a failed creation must release the open transaction");
+    }
+
+    [Fact]
+    public async Task RegisterAsync_WhenAddToRoleFails_ReturnsErrorAndRollsBack()
+    {
+        var request = new RegisterRequest("user", "user@test.com", "Pass123!", "Pass123!");
+        _userManagerMock
+            .Setup(m => m.FindByNameAsync("user"))
+            .ReturnsAsync((User?)null);
+        _userManagerMock
+            .Setup(m => m.FindByEmailAsync("user@test.com"))
+            .ReturnsAsync((User?)null);
+        _userManagerMock
+            .Setup(m => m.CreateAsync(It.IsAny<User>(), "Pass123!"))
+            .ReturnsAsync(IdentityResult.Success);
+        _userManagerMock
+            .Setup(m => m.AddToRoleAsync(It.IsAny<User>(), "user"))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Role does not exist" }));
+
+        var result = await _sut.RegisterAsync(request);
+
+        result.IsError.Should().BeTrue();
+        _userManagerMock.Verify(m => m.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()), Times.Never,
+            "no confirmation email should be queued when the role assignment fails");
+        _unitOfWorkMock.Verify(u => u.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.RollbackTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -504,6 +532,8 @@ public class AuthServiceTests : IDisposable
         token.IsRevoked.Should().BeTrue();
         token.RevokedByIp.Should().Be("198.51.100.9");
         token.RevokedAt.Should().NotBeNull();
+        var reloaded = await _dbContext.RefreshTokens.AsNoTracking().SingleAsync(t => t.Token == "active-token");
+        reloaded.IsRevoked.Should().BeTrue("the revocation must be persisted, not just tracked");
     }
 
     private void SeedUserWithToken(User user, RefreshTokenEntity token)

@@ -11,7 +11,7 @@ public class RevokeTokenEndpointTests(IdentityApiFixture fixture) : IdentityApiT
     private const string RefreshUrl = "/api/v1/auth/refresh-token";
 
     [Fact]
-    public async Task Revoke_WithValidToken_Returns204()
+    public async Task Revoke_WithValidToken_Returns204AndPersistsRevocation()
     {
         // Arrange
         var user = await RegisterUserAsync();
@@ -20,13 +20,18 @@ public class RevokeTokenEndpointTests(IdentityApiFixture fixture) : IdentityApiT
         // Act
         var response = await PostJsonAsync(RevokeUrl, new { refreshToken = login.RefreshToken });
 
-        // Assert — known gap: RevokeTokenAsync mutates the tracked token but never
-        // calls SaveChangesAsync, so the revocation is not persisted and the token
-        // still refreshes afterward (flagged in the status report).
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var scope = CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+        var token = await db.RefreshTokens.AsNoTracking().SingleAsync(t => t.Token == login.RefreshToken);
+        token.IsRevoked.Should().BeTrue("the revocation must be persisted");
+        token.RevokedAt.Should().NotBeNull();
+        token.RevokedByIp.Should().NotBeNullOrEmpty();
+
         var refreshAfterRevoke = await PostJsonAsync(RefreshUrl, new { refreshToken = login.RefreshToken });
-        refreshAfterRevoke.StatusCode.Should().Be(HttpStatusCode.OK,
-            "current behavior: an un-persisted revocation does not invalidate the token");
+        refreshAfterRevoke.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
+            "a revoked token must no longer be usable for a refresh");
     }
 
     [Fact]

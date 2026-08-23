@@ -31,7 +31,11 @@ public static class InfrastructureModule
             services.AddDatabase<AppIdentityDbContext>("Identity");
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IRsaKeyProvider, RsaKeyProvider>();
+            // Singleton on purpose: IdentityModel's CryptoProviderFactory caches
+            // signature providers by key id, so a scoped provider whose RSA is
+            // disposed at the end of each request crashes every subsequent
+            // token signing with ObjectDisposedException.
+            services.AddSingleton<IRsaKeyProvider, RsaKeyProvider>();
             services.AddScoped<IAccountService, AccountService>();
 
             return services;

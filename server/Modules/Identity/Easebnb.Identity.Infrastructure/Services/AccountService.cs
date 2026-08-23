@@ -13,7 +13,7 @@ public sealed class AccountService(UserManager<User> userManager, IObjectStorage
 {
     public async Task<ErrorOr<Success>> ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
     {
-        if (request.NewPassword != request.ConfirmNewPassword) return Error.Unexpected(description:"New passwords do not match");
+        if (request.NewPassword != request.ConfirmNewPassword) return Error.Validation(description:"New passwords do not match");
 
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user == null) return Error.NotFound(description: "User not found");
