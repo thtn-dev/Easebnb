@@ -10,3 +10,9 @@ public sealed class AvatarUploadSettings
     public long MaxFileSizeBytes { get; set; } = 5 * 1024 * 1024; // 5MB
     public int MaxDimension { get; set; } = 512;
 }
+
+public sealed class OrganizationLogoUploadSettings
+{
+    public long MaxFileSizeBytes { get; set; } = 5 * 1024 * 1024; // 5MB
+    public int MaxDimension { get; set; } = 512;
+}
