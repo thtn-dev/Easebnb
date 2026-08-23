@@ -30,6 +30,9 @@
         <Project Path="Modules/Organization/Easebnb.Organization.Core/Easebnb.Organization.Core.csproj" />
         <Project Path="Modules/Organization/Easebnb.Organization.Infrastructure/Easebnb.Organization.Infrastructure.csproj" />
     </Folder>
+    <Folder Name="/Modules/Organization/tests/">
+        <Project Path="Modules/Organization/tests/Easebnb.Organization.UnitTests/Easebnb.Organization.UnitTests.csproj" />
+    </Folder>
     <Folder Name="/SolutionItems/">
         <File Path="docker-compose.yml" />
     </Folder>
