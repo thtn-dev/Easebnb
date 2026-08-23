@@ -1,34 +1,38 @@
 <Solution>
     <Folder Name="/Aspire/">
-        <Project Path="Aspire/Easebnb.AppHost/Easebnb.AppHost.csproj"/>
+        <Project Path="Aspire/Easebnb.AppHost/Easebnb.AppHost.csproj" />
     </Folder>
     <Folder Name="/BuildingBlocks/">
-        <Project Path="BuildingBlocks/BuildingBlocks.Application/BuildingBlocks.Application.csproj"/>
-        <Project Path="BuildingBlocks/BuildingBlocks.Endpoints/BuildingBlocks.Endpoints.csproj"/>
-        <Project Path="BuildingBlocks/BuildingBlocks.Infrastructure/BuildingBlocks.Infrastructure.csproj"/>
-        <Project Path="BuildingBlocks/BuildingBlocks.SharedKernel/BuildingBlocks.SharedKernel.csproj"/>
-        <Project Path="BuildingBlocks/BuildingBlocks.Utils/BuildingBlocks.Utils.csproj"/>
+        <Project Path="BuildingBlocks/BuildingBlocks.Application/BuildingBlocks.Application.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.Endpoints/BuildingBlocks.Endpoints.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.Infrastructure/BuildingBlocks.Infrastructure.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.IntegrationEvents/BuildingBlocks.IntegrationEvents.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.SharedKernel/BuildingBlocks.SharedKernel.csproj" />
+        <Project Path="BuildingBlocks/BuildingBlocks.Utils/BuildingBlocks.Utils.csproj" />
     </Folder>
     <Folder Name="/BuildingBlocks/tests/">
-        <Project Path="BuildingBlocks/tests/BuildingBlocks.Tests.Base/BuildingBlocks.Tests.Base.csproj"
-                 Id="0102b51c-0561-477c-a5ee-57b8ba0b9a59"/>
-        <Project Path="BuildingBlocks/tests/BuildingBlocks.UnitTests/BuildingBlocks.UnitTests.csproj"
-                 Id="286570f4-48f9-4ccf-ad43-076187c7fe3c"/>
+        <Project Path="BuildingBlocks/tests/BuildingBlocks.Tests.Base/BuildingBlocks.Tests.Base.csproj"  />
+        <Project Path="BuildingBlocks/tests/BuildingBlocks.UnitTests/BuildingBlocks.UnitTests.csproj"  />
     </Folder>
     <Folder Name="/Database/">
-        <Project Path="Database/Easebnb.Database/Easebnb.Database.csproj"/>
+        <Project Path="Database/Easebnb.Database/Easebnb.Database.csproj" />
     </Folder>
-    <Folder Name="/Modules/"/>
+    <Folder Name="/Modules/" />
     <Folder Name="/Modules/Identity/">
-        <Project Path="Modules/Identity/Easebnb.Identity.Application/Easebnb.Identity.Core.csproj"/>
-        <Project Path="Modules/Identity/Easebnb.Identity.Infrastructure/Easebnb.Identity.Infrastructure.csproj"/>
+        <Project Path="Modules/Identity/Easebnb.Identity.Application/Easebnb.Identity.Core.csproj" />
+        <Project Path="Modules/Identity/Easebnb.Identity.Infrastructure/Easebnb.Identity.Infrastructure.csproj" />
     </Folder>
-    <Folder Name="/Modules/Identity/tests/" Id="62544c6a-225d-06c0-cd83-96be8ca89ea3">
-        <Project
-                Path="Modules/Identity/tests/Easebnb.Identity.IntegrationTests/Easebnb.Identity.IntegrationTests.csproj"/>
-        <Project Path="Modules/Identity/tests/Easebnb.Identity.UnitTests/Easebnb.Identity.UnitTests.csproj"/>
+    <Folder Name="/Modules/Identity/tests/">
+        <Project Path="Modules/Identity/tests/Easebnb.Identity.IntegrationTests/Easebnb.Identity.IntegrationTests.csproj" />
+        <Project Path="Modules/Identity/tests/Easebnb.Identity.UnitTests/Easebnb.Identity.UnitTests.csproj" />
     </Folder>
-    <Folder Name="/Modules/Organization/"/>
-    <Project Path="Easebnb.ServiceDefaults/Easebnb.ServiceDefaults.csproj"/>
-    <Project Path="Easebnb.WebApi/Easebnb.WebApi.csproj"/>
+    <Folder Name="/Modules/Organization/">
+        <Project Path="Modules/Organization/Easebnb.Organization.Application/Easebnb.Organization.Application.csproj" />
+        <Project Path="Modules/Organization/Easebnb.Organization.Infrastructure/Easebnb.Organization.Infrastructure.csproj" />
+    </Folder>
+    <Folder Name="/SolutionItems/">
+        <File Path="docker-compose.yml" />
+    </Folder>
+    <Project Path="Easebnb.ServiceDefaults/Easebnb.ServiceDefaults.csproj" />
+    <Project Path="Easebnb.WebApi/Easebnb.WebApi.csproj" />
 </Solution>

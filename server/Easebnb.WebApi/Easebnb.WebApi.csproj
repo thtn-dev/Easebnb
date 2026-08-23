@@ -32,6 +32,7 @@
         <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.Endpoints\BuildingBlocks.Endpoints.csproj"/>
         <ProjectReference Include="..\Modules\Identity\Easebnb.Identity.Application\Easebnb.Identity.Core.csproj"/>
         <ProjectReference Include="..\Modules\Identity\Easebnb.Identity.Infrastructure\Easebnb.Identity.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Modules\Organization\Easebnb.Organization.Infrastructure\Easebnb.Organization.Infrastructure.csproj"/>
         <ProjectReference Include="..\Easebnb.ServiceDefaults\Easebnb.ServiceDefaults.csproj"/>
     </ItemGroup>
 
