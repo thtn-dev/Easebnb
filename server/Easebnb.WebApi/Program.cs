@@ -176,3 +176,6 @@ app.UseRateLimiter();
 app.MapDefaultEndpoints();
 app.MapEndpoints();
 app.Run();
+
+// Required for WebApplicationFactory<Program> in integration tests.
+public partial class Program;

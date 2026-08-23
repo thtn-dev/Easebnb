@@ -1,29 +1,37 @@
-﻿using Easebnb.Identity.Core.Dtos;
-using Easebnb.Identity.Core.Entities;
+﻿using System.Net;
+using Easebnb.Identity.Core.Dtos;
+using Easebnb.Identity.Core.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Easebnb.Identity.IntegrationTests;
 
-public class AccountServiceTests(IdentityModuleFixture fixture) : IdentityModuleTestBase(fixture)
+public class AccountServiceTests(IdentityApiFixture fixture) : IdentityApiTestBase(fixture)
 {
+    private IAccountService CreateAccountService()
+    {
+        var scope = CreateScope();
+        return scope.ServiceProvider.GetRequiredService<IAccountService>();
+    }
+
     [Fact]
     public async Task ChangePassword_WithCorrectCurrentPassword_Succeeds()
     {
         // Arrange
-        var user = new User { UserName = "test@easebnb.com", Email = "test@easebnb.com" };
-        var createResult = await UserManager.CreateAsync(user, "OldPass123!");
-        var request = new ChangePasswordRequest("OldPass123!", "NewPass123!", "NewPass123!");
+        var user = await RegisterUserAsync();
+        var persisted = await GetUserByUsernameAsync(user.Username);
+        var accountService = CreateAccountService();
+        var request = new ChangePasswordRequest(user.Password, "NewPass123!", "NewPass123!");
 
         // Act
-        var result = await AccountService.ChangePasswordAsync(user.Id, request);
+        var result = await accountService.ChangePasswordAsync(persisted.Id, request);
 
         // Assert
-        createResult.Succeeded.Should().BeTrue(
-            string.Join(", ", createResult.Errors.Select(x => x.Description)));
+        result.IsError.Should().BeFalse();
+        var oldPasswordLogin = await PostJsonAsync(LoginUrl, new { username = user.Username, password = user.Password });
+        oldPasswordLogin.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
+            "the old password must stop working after a change");
 
-        (await UserManager.CheckPasswordAsync(user, "OldPass123!"))
-            .Should().BeFalse();
-
-        (await UserManager.CheckPasswordAsync(user, "NewPass123!"))
-            .Should().BeTrue();
+        var newPasswordLogin = await PostJsonAsync(LoginUrl, new { username = user.Username, password = "NewPass123!" });
+        newPasswordLogin.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
