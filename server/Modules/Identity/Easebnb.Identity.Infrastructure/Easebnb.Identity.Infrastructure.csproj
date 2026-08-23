@@ -2,7 +2,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\Database\Easebnb.Database\Easebnb.Database.csproj"/>
-        <ProjectReference Include="..\Easebnb.Identity.Application\Easebnb.Identity.Core.csproj"/>
+        <ProjectReference Include="..\Easebnb.Identity.Core\Easebnb.Identity.Core.csproj"/>
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.IntegrationEvents\BuildingBlocks.IntegrationEvents.csproj"/>
     </ItemGroup>

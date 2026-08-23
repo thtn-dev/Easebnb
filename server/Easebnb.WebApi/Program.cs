@@ -2,10 +2,16 @@ using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using BuildingBlocks.Endpoints;
 using BuildingBlocks.Infrastructure.DomainEvent;
+using BuildingBlocks.Infrastructure.IntegrationEvents;
 using BuildingBlocks.Infrastructure.ObjectStorage.S3;
 using BuildingBlocks.SharedKernel;
 using DotNetEnv;
+using Easebnb.Identity.Infrastructure.IntegrationEvents;
+using Easebnb.Organization.Infrastructure;
+using MassTransit;
 using Scalar.AspNetCore;
+// MassTransit also exports a LogContext; keep Serilog's for the TraceId enrichment below.
+using LogContext = Serilog.Context.LogContext;
 using Easebnb.Identity.Infrastructure;
 using Easebnb.Identity.Infrastructure.Database;
 using Easebnb.WebApi;
@@ -84,6 +90,27 @@ builder.AddServiceDefaults();
 
 {
     builder.Services.AddIdentityModule(builder.Configuration);
+}
+
+#endregion
+
+#region Organization Module
+
+{
+    builder.Services.AddOrganizationModule(builder.Configuration);
+}
+
+#endregion
+
+#region Integration Events
+
+{
+    builder.Services.AddMassTransit(massTransit =>
+    {
+        massTransit.AddIntegrationEventBus(builder.Configuration);
+        massTransit.AddIdentityModuleIntegrationEvents(builder.Configuration);
+        massTransit.AddOrganizationModuleIntegrationEvents(builder.Configuration);
+    });
 }
 
 #endregion

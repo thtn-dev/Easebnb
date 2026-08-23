@@ -11,15 +11,15 @@
         <Project Path="BuildingBlocks/BuildingBlocks.Utils/BuildingBlocks.Utils.csproj" />
     </Folder>
     <Folder Name="/BuildingBlocks/tests/">
-        <Project Path="BuildingBlocks/tests/BuildingBlocks.Tests.Base/BuildingBlocks.Tests.Base.csproj"  />
-        <Project Path="BuildingBlocks/tests/BuildingBlocks.UnitTests/BuildingBlocks.UnitTests.csproj"  />
+        <Project Path="BuildingBlocks/tests/BuildingBlocks.Tests.Base/BuildingBlocks.Tests.Base.csproj" />
+        <Project Path="BuildingBlocks/tests/BuildingBlocks.UnitTests/BuildingBlocks.UnitTests.csproj" />
     </Folder>
     <Folder Name="/Database/">
         <Project Path="Database/Easebnb.Database/Easebnb.Database.csproj" />
     </Folder>
     <Folder Name="/Modules/" />
     <Folder Name="/Modules/Identity/">
-        <Project Path="Modules/Identity/Easebnb.Identity.Application/Easebnb.Identity.Core.csproj" />
+        <Project Path="Modules/Identity/Easebnb.Identity.Core/Easebnb.Identity.Core.csproj" />
         <Project Path="Modules/Identity/Easebnb.Identity.Infrastructure/Easebnb.Identity.Infrastructure.csproj" />
     </Folder>
     <Folder Name="/Modules/Identity/tests/">
@@ -27,7 +27,7 @@
         <Project Path="Modules/Identity/tests/Easebnb.Identity.UnitTests/Easebnb.Identity.UnitTests.csproj" />
     </Folder>
     <Folder Name="/Modules/Organization/">
-        <Project Path="Modules/Organization/Easebnb.Organization.Application/Easebnb.Organization.Application.csproj" />
+        <Project Path="Modules/Organization/Easebnb.Organization.Core/Easebnb.Organization.Core.csproj" />
         <Project Path="Modules/Organization/Easebnb.Organization.Infrastructure/Easebnb.Organization.Infrastructure.csproj" />
     </Folder>
     <Folder Name="/SolutionItems/">
