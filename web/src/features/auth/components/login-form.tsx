@@ -131,6 +131,15 @@ export function LoginForm() {
             </Field>
           </FieldGroup>
 
+          <p className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-xs text-primary underline-offset-4 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </p>
+
           {formError ? (
             <Alert variant="destructive">
               <CircleAlertIcon />

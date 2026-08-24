@@ -19,6 +19,8 @@ interface AuthState {
   /** True until persisted auth state has been read on the client. */
   isLoading: boolean;
   setSession: (session: AuthSession, rememberMe: boolean) => void;
+  /** Replaces the stored user (e.g. after GET/PUT /account/me). */
+  setUser: (user: UserInfo) => void;
   clearSession: () => void;
   hydrate: () => void;
 }
@@ -75,7 +77,7 @@ function readPersistedSession() {
   }
 }
 
-export const useAuthStore = create<AuthState>()((set) => ({
+export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   accessToken: null,
   refreshToken: null,
@@ -95,6 +97,22 @@ export const useAuthStore = create<AuthState>()((set) => ({
       rememberMe,
       isAuthenticated: true,
     });
+  },
+  setUser: (user) => {
+    const current = get();
+    if (current.accessToken && current.refreshToken) {
+      persistSession(
+        {
+          accessToken: current.accessToken,
+          refreshToken: current.refreshToken,
+          tokenType: current.tokenType,
+          expiresAt: current.expiresAt ?? Date.now(),
+          user,
+        },
+        current.rememberMe,
+      );
+    }
+    set({ user });
   },
   clearSession: () => {
     clearPersistedSession();

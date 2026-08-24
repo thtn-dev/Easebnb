@@ -160,6 +160,29 @@ the shared API client:
 Local backend: set `API_PROXY_URL=http://localhost:5282` in `.env.local`
 (see `.env.example`).
 
+## Account
+
+`/api/v1/account` (`features/account/`) reuses the auth infrastructure —
+no second API client, auth system, or `UserInfo` type.
+
+- **API service** — `features/account/api.ts`: `getCurrentUser`,
+  `updateProfile` (GET/PUT `/account/me`), `changePassword` (authenticated,
+  Bearer attached + 401 auto-refresh by the shared client) and the public
+  `confirmEmail` / `resendEmailConfirmation` / `forgotPassword` /
+  `resetPassword` (`skipAuth` — no Authorization header, no auto-refresh).
+  Note: the current backend answers **204 No Content** for the message-only
+  endpoints (OpenAPI declares `200 + ApiResponse`); an empty body is treated
+  as success without a message.
+- **State sync** — `features/account/session.ts` keeps `auth.user` current:
+  GET/PUT `/me` and confirm-email all flow through `setUser` in the auth
+  store (`stores/auth-store.ts`).
+- **Routes** — `/account` (overview + resend confirmation + logout),
+  `/account/profile`, `/account/security` (all behind `AuthGuard`),
+  `/account/confirm-email?userId=&token=` (public, auto-confirms on load),
+  `/forgot-password`, `/reset-password?email=&token=` (public, prefills from
+  the link). `change-picture-profile` is intentionally not implemented
+  (needs object storage).
+
 ## Conventions
 
 - Imports use the `@/*` alias (maps to `src/*`).
