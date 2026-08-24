@@ -1,5 +1,6 @@
+import { getApiAuthBridge } from "./auth-bridge";
 import { apiConfig } from "./config";
-import { ApiError } from "./errors";
+import { ApiError, isApiError } from "./errors";
 import type { RequestOptions } from "./types";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -54,7 +55,38 @@ export class ApiClient {
     options: RequestOptions = {},
     body?: unknown,
   ): Promise<TResponse> {
+    try {
+      return await this.performRequest<TResponse>(method, path, options, body);
+    } catch (error) {
+      // A 401 usually means the access token expired: refresh once through
+      // the auth bridge and retry the original request exactly once. A
+      // second 401 propagates, so a refresh loop is impossible.
+      if (!isApiError(error) || error.status !== 401 || options.skipAuth) {
+        throw error;
+      }
+      const auth = getApiAuthBridge();
+      const refreshed = auth ? await auth.refresh() : false;
+      if (!refreshed) {
+        throw error;
+      }
+      return this.performRequest<TResponse>(method, path, options, body);
+    }
+  }
+
+  private async performRequest<TResponse>(
+    method: HttpMethod,
+    path: string,
+    options: RequestOptions,
+    body?: unknown,
+  ): Promise<TResponse> {
     const headers = new Headers(options.headers);
+    if (!options.skipAuth) {
+      const auth = getApiAuthBridge();
+      const accessToken = auth?.getAccessToken();
+      if (auth && accessToken) {
+        headers.set("Authorization", `${auth.getTokenType()} ${accessToken}`);
+      }
+    }
     let payload: string | undefined;
     if (body !== undefined) {
       if (!headers.has("Content-Type")) {

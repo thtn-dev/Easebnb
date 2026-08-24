@@ -17,6 +17,11 @@ export interface ApiErrorBody {
 export type QueryParams = Record<string, string | number | boolean | null | undefined>;
 
 export interface RequestOptions {
+  /**
+   * Auth endpoints only (login/register/refresh/revoke): omit the
+   * Authorization header and never attempt the 401 refresh-retry.
+   */
+  skipAuth?: boolean;
   /** Query parameters appended to the URL; null/undefined values are skipped. */
   query?: QueryParams;
   /** Extra headers merged over the defaults; JSON headers are set automatically when a body is present. */

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Public_Sans } from "next/font/google";
 import "./globals.css";
+import { AuthHydration } from "@/features/auth/components/auth-hydration";
 import { cn } from "@/lib/utils";
 import { QueryProvider } from "@/providers/query-provider";
 
@@ -31,7 +32,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", publicSans.variable)}
     >
       <body className="min-h-full flex flex-col">
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <AuthHydration />
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );

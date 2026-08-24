@@ -121,14 +121,6 @@ Recommended local setup: leave `NEXT_PUBLIC_API_URL` empty and set
 to the backend (no CORS, cookies just work), and server rendering calls the
 backend directly. `API_PROXY_URL` is never exposed to the browser.
 
-## Authentication readiness
-
-Not implemented yet, but prepared for: the API client sends cookies with
-every request (`credentials: "include"`) so HttpOnly session cookies will
-work without touching call sites, and `isUnauthorizedError`/`isForbiddenError`
-(401/403) helpers exist for redirect/permission handling. A Bearer-token
-scheme, if ever needed, is a change in `lib/api/client.ts` only.
-
 ## SSR with TanStack Query
 
 `lib/query-client.ts` follows the canonical App Router pattern: a fresh
@@ -137,6 +129,36 @@ singleton in the browser. To SSR a query: in a Server Component, `const
 queryClient = getQueryClient()`, `queryClient.prefetchQuery(healthQuery)`,
 then wrap the consumer in `<HydrationBoundary state={dehydrate(queryClient)}>`.
 Client-only data just uses `useQuery` — no prefetch needed.
+
+## Authentication
+
+JWT Bearer auth against `/api/v1/auth/*` (see `open-api-v1.json`), built on
+the shared API client:
+
+- **State** — `src/stores/auth-store.ts` (Zustand): `user`, `accessToken`,
+  `refreshToken`, `isAuthenticated`, `isLoading`. UI uses semantic actions
+  from `src/features/auth/session.ts` (`login`, `register`, `logout`,
+  `revokeToken`) — no raw token handling in components.
+- **Storage** — `rememberMe: false` → `sessionStorage` (dies with the tab);
+  `rememberMe: true` → `localStorage` (persistent). Persisted data is
+  re-validated with Zod on hydration. Tokens are never rendered in the UI.
+- **Authorized requests** — `lib/api/client.ts` attaches
+  `Authorization: <tokenType> <accessToken>` automatically via the auth
+  bridge (`lib/api/auth-bridge.ts`). "Bearer" is set in one place from the
+  login response.
+- **Auto refresh** — on a 401 the client calls the single-flight
+  `refreshAuthSession()` (concurrent 401s share one refresh request), then
+  retries the original request exactly once. Refresh failure clears the
+  session; guards redirect to `/login`. Auth endpoints themselves are
+  `skipAuth`, so a refresh loop is impossible.
+- **Routes** — `/login`, `/register` (GuestGuard: signed-in users are
+  redirected to `/dashboard`), `/dashboard` (AuthGuard). Guards wait for
+  hydration (`isLoading`) before redirecting.
+- **Logout** — always clears the local session, even when the backend
+  revocation call fails.
+
+Local backend: set `API_PROXY_URL=http://localhost:5282` in `.env.local`
+(see `.env.example`).
 
 ## Conventions
 
