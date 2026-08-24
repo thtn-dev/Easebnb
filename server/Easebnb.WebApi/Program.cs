@@ -73,6 +73,8 @@ builder.Services.AddRateLimiter(options =>
 });
 builder.Services.Configure<AvatarUploadSettings>(
     builder.Configuration.GetSection("UploadSettings:Avatar"));
+builder.Services.Configure<OrganizationLogoUploadSettings>(
+    builder.Configuration.GetSection("UploadSettings:OrganizationLogo"));
 builder.Services.ConfigureOpenApi();
 builder.AddServiceDefaults();
 

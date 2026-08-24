@@ -1,23 +1,29 @@
-﻿using BuildingBlocks.IntegrationEvents.Contracts.Identity;
+using BuildingBlocks.IntegrationEvents.Contracts.Identity;
+using Easebnb.Organization.Core.Entities;
 using Easebnb.Organization.Infrastructure.Database;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Easebnb.Organization.Infrastructure.IntegrationEvents;
 
 /// <summary>
 ///     Consumes <see cref="UserRegisteredIntegrationEvent" /> published by the
-///     Identity module. Deliberately minimal (log-only) so it serves as the
-///     reference consumer: real consumers replace the logging with their own
-///     application logic. Delivery is at-least-once, so any real handling must
-///     stay idempotent — the EF inbox configured in
-///     <see cref="UserRegisteredConsumerDefinition" /> filters redeliveries by
-///     MessageId.
+///     Identity module and upserts the user into this module's registered-user
+///     registry (<c>organization.registered_users</c>). The registry backs the
+///     "user must exist" rule when adding organization members and enriches
+///     member listings, without this module ever touching the Identity schema.
+///     Delivery is at-least-once, so handling must stay idempotent — the EF
+///     inbox configured in <see cref="UserRegisteredConsumerDefinition" />
+///     filters redeliveries by MessageId, and the primary-key upsert tolerates
+///     any that still slip through.
 /// </summary>
-public sealed class UserRegisteredConsumer(ILogger<UserRegisteredConsumer> logger)
+public sealed class UserRegisteredConsumer(
+    ILogger<UserRegisteredConsumer> logger,
+    OrganizationDbContext dbContext)
     : IConsumer<UserRegisteredIntegrationEvent>
 {
-    public Task Consume(ConsumeContext<UserRegisteredIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<UserRegisteredIntegrationEvent> context)
     {
         var message = context.Message;
 
@@ -25,7 +31,18 @@ public sealed class UserRegisteredConsumer(ILogger<UserRegisteredConsumer> logge
             "Consuming UserRegisteredIntegrationEvent {MessageId} for user {UserId} (correlation {CorrelationId}, event {EventId})",
             context.MessageId, message.UserId, context.CorrelationId, message.Id);
 
-        return Task.CompletedTask;
+        var registeredUser = await dbContext.RegisteredUsers
+            .FirstOrDefaultAsync(u => u.Id == message.UserId, context.CancellationToken);
+
+        if (registeredUser is null)
+            dbContext.RegisteredUsers.Add(
+                RegisteredUser.Create(message.UserId, message.Email, message.UserName));
+        else
+            registeredUser.Update(message.Email, message.UserName);
+
+        // Saved together with the inbox state by the EF outbox middleware so
+        // the projection and the consumed marker commit atomically.
+        await dbContext.SaveChangesAsync(context.CancellationToken);
     }
 }
 
