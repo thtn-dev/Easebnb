@@ -25,7 +25,7 @@ namespace Easebnb.Identity.IntegrationTests;
 /// </summary>
 public sealed class IdentityApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:16-alpine")
+    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:18-alpine3.23")
         .WithDatabase("easebnb_test")
         .WithUsername("test")
         .WithPassword("test")
