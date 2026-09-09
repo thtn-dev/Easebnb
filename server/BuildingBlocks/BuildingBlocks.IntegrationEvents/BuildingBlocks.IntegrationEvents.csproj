@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <!--
+        This project holds the integration event contracts shared between modules.
+        It must stay dependency-free: no package references, no references to
+        modules or BuildingBlocks projects. Modules talk to each other only
+        through the records defined here.
+    -->
+
+</Project>

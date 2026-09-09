@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace BuildingBlocks.Infrastructure.ObjectStorage.S3;
 
-public static  class ServiceCollectionExtensions
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddS3ObjectStorage(this IServiceCollection services, IConfiguration config)
     {

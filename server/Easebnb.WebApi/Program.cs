@@ -1,21 +1,34 @@
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using BuildingBlocks.Endpoints;
-using BuildingBlocks.Infrastructure;
 using BuildingBlocks.Infrastructure.DomainEvent;
+using BuildingBlocks.Infrastructure.IntegrationEvents;
 using BuildingBlocks.Infrastructure.ObjectStorage.S3;
 using BuildingBlocks.SharedKernel;
 using DotNetEnv;
+using Easebnb.Identity.Infrastructure.IntegrationEvents;
+using Easebnb.Organization.Infrastructure;
+using MassTransit;
 using Scalar.AspNetCore;
-using Easebnb.Database;
+// MassTransit also exports a LogContext; keep Serilog's for the TraceId enrichment below.
+using LogContext = Serilog.Context.LogContext;
 using Easebnb.Identity.Infrastructure;
 using Easebnb.Identity.Infrastructure.Database;
 using Easebnb.WebApi;
 using Easebnb.WebApi.Extensions;
+using Easebnb.WebApi.Modules.Identity.Auth;
+using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
+using Serilog;
+using Serilog.Context;
+using Serilog.Sinks.OpenTelemetry;
 
+Serilog.Debugging.SelfLog.Enable(Console.Error);
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 var uploadSettings = builder.Configuration.GetSection("UploadSettings").Get<UploadSettings>()
@@ -24,6 +37,24 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = uploadSettings.GlobalMaxBodySizeBytes;
 });
+
+builder.Host.UseSerilog((context, services, config) =>
+{
+    config
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+
+    var otlpEndpoint = context.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+
+    if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+        config.WriteTo.OpenTelemetry(options =>
+        {
+            options.Endpoint = otlpEndpoint;
+            options.Protocol = OtlpProtocol.Grpc;
+        });
+});
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = uploadSettings.GlobalMaxBodySizeBytes;
@@ -32,7 +63,7 @@ builder.Services.Configure<FormOptions>(options =>
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
- 
+
     options.AddFixedWindowLimiter("file-upload", opt =>
     {
         opt.PermitLimit = 10;
@@ -42,36 +73,51 @@ builder.Services.AddRateLimiter(options =>
 });
 builder.Services.Configure<AvatarUploadSettings>(
     builder.Configuration.GetSection("UploadSettings:Avatar"));
+builder.Services.Configure<OrganizationLogoUploadSettings>(
+    builder.Configuration.GetSection("UploadSettings:OrganizationLogo"));
 builder.Services.ConfigureOpenApi();
 builder.AddServiceDefaults();
 
-var databaseSection = builder.Configuration.GetSection(DatabaseSettings.SectionName);
 
 #region Domain Event
+
 {
     builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
     builder.Services.AddScoped<IDomainEventsAccessor, DomainEventsAccessor<AppIdentityDbContext>>();
 }
+
 #endregion
 
 #region Identity Module
+
 {
-    builder.Services.AddOptions<DatabaseSettings>()
-    .Bind(databaseSection)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-    builder.Services.AddDatabase<AppIdentityDbContext>("Identity");
-    builder.Services.AddScoped<IUnitOfWork, UnitOfWork<AppIdentityDbContext>>();
-
-    builder.Services.AddAspNetIdentityServices(builder.Configuration);
-    builder.Services.AddIdentityModule();
+    builder.Services.AddIdentityModule(builder.Configuration);
 }
+
 #endregion
 
-builder.Services.AddMediatR(cfg => { 
-    cfg.RegisterServicesFromAssembly(typeof(AppIdentityDbContext).Assembly); 
-});
+#region Organization Module
+
+{
+    builder.Services.AddOrganizationModule(builder.Configuration);
+}
+
+#endregion
+
+#region Integration Events
+
+{
+    builder.Services.AddMassTransit(massTransit =>
+    {
+        massTransit.AddIntegrationEventBus(builder.Configuration);
+        massTransit.AddIdentityModuleIntegrationEvents(builder.Configuration);
+        massTransit.AddOrganizationModuleIntegrationEvents(builder.Configuration);
+    });
+}
+
+#endregion
+
+builder.Services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(typeof(AppIdentityDbContext).Assembly); });
 builder.Services.AddApi<Program>();
 builder.Services.AddProblemDetails();
 builder.Services.AddCors(options =>
@@ -88,6 +134,43 @@ builder.Services.AddCors(options =>
 builder.Services.AddS3ObjectStorage(builder.Configuration);
 
 var app = builder.Build();
+app.UseExceptionHandler(o =>
+{
+    o.Run(async context =>
+    {
+        var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+        if (exceptionFeature is null) return;
+
+        var handler = context.RequestServices.GetRequiredService<GlobalExceptionHandler>();
+        await handler.TryHandleAsync(context, exceptionFeature.Error, CancellationToken.None);
+    });
+});
+
+app.Use(async (context, next) =>
+{
+    var traceId = Activity.Current?.TraceId.ToString()
+                  ?? context.TraceIdentifier;
+
+    using (LogContext.PushProperty("TraceId", traceId))
+    {
+        await next();
+    }
+});
+
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms | TraceId: {TraceId}";
+
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("TraceId",
+            Activity.Current?.TraceId.ToString() ?? httpContext.TraceIdentifier);
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent);
+    };
+});
+
 app.UseCors("AllowAll");
 app.UseForwardedHeaders();
 app.UseStatusCodePages();
@@ -122,3 +205,6 @@ app.UseRateLimiter();
 app.MapDefaultEndpoints();
 app.MapEndpoints();
 app.Run();
+
+// Required for WebApplicationFactory<Program> in integration tests.
+public partial class Program;

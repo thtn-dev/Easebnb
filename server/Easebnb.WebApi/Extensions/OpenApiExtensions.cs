@@ -3,7 +3,6 @@ using Microsoft.OpenApi;
 
 namespace Easebnb.WebApi.Extensions;
 
-
 public static class OpenApiExtensions
 {
     public static void ConfigureOpenApi(this IServiceCollection services)
@@ -30,7 +29,7 @@ public static class OpenApiExtensions
                 document.Components ??= new OpenApiComponents();
                 document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
                 {
-                    ["Bearer"] = new OpenApiSecurityScheme()
+                    ["Bearer"] = new OpenApiSecurityScheme
                     {
                         Type = SecuritySchemeType.Http,
                         Scheme = "bearer",
